@@ -98,8 +98,8 @@
 (define (move-up-down inventory window symbol)
     (cond ((null? inventory) window)
     ((and(equal? (substring (get-letter-match (generate-row inventory) window) 0 1) "A") (equal? symbol -))
-    (match-row-col (generate-rows inventory "F") (caddr window)))
-    ((and(equal? (substring (get-letter-match (generate-row inventory) window) 0 1) "F") (equal? symbol +))
+    (match-row-col (generate-rows inventory "G") (caddr window)))
+    ((and(equal? (substring (get-letter-match (generate-row inventory) window) 0 1) "G") (equal? symbol +))
     (match-row-col (generate-rows inventory "A") (caddr window)))
     (else(match-row-col (generate-rows inventory (string(move-char (string-ref(get-letter-match (generate-row inventory) window) 0) symbol)))(caddr window)))))
 
