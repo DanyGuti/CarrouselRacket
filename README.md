@@ -1,4 +1,4 @@
-# CarrouselRacket
+# CarrouselRacket <img src="https://racket-lang.org/img/racket-logo.svg" alt="Racket Logo" width="50" height="50" style="float:right; margin-bottom:5%;">
 Functional programming to make transactions in a circular carrousel
 ## General Info
 Project of a circular carrousel which can make two main transactions:
