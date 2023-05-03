@@ -3,6 +3,7 @@
 ;; Made by Daniel Gutiérrez Gómez A01068056
 (define left-regex #rx"^[A-Z]1$") ; Out of bounds to the left when match
 (define right-regex #rx"^[A-Z]5$") ; Out of bounds to the right when match
+(define total-regex #rx"^(A|B|C|D|E)$") ; Total regex to search for row
 
 ;; Generate rows of letters: ("A", "B", "C", "D", "E", "F", "G", "H", "I", "J")
 (define generate-row
@@ -86,8 +87,8 @@
 (define (move-up-down inventory window symbol)
     (cond ((null? inventory) window)
     ((and(equal? (substring (get-letter-match (generate-row inventory) window) 0 1) "A") (equal? symbol -))
-    (match-row-col (generate-rows inventory "J") (caddr window)))
-    ((and(equal? (substring (get-letter-match (generate-row inventory) window) 0 1) "J") (equal? symbol +))
+    (match-row-col (generate-rows inventory "E") (caddr window)))
+    ((and(equal? (substring (get-letter-match (generate-row inventory) window) 0 1) "E") (equal? symbol +))
     (match-row-col (generate-rows inventory "A") (caddr window)))
     (else(match-row-col (generate-rows inventory (string(move-char (string-ref(get-letter-match (generate-row inventory) window) 0) symbol)))(caddr window)))))
 
@@ -310,38 +311,8 @@
           (result '()))
       (set! result (cons "E" (map (lambda (sublist) (apply list sublist)) a-rows)))
       result)))
-(define rows-F
-  (lambda (rows)
-    (let ((a-rows (filter (lambda (row) (equal? (substring (car row) 0 1) "F")) rows))
-          (result '()))
-      (set! result (cons "F" (map (lambda (sublist) (apply list sublist)) a-rows)))
-      result)))
-(define rows-G
-  (lambda (rows)
-    (let ((a-rows (filter (lambda (row) (equal? (substring (car row) 0 1) "G")) rows))
-          (result '()))
-      (set! result (cons "G" (map (lambda (sublist) (apply list sublist)) a-rows)))
-      result)))
-(define rows-H
-  (lambda (rows)
-    (let ((a-rows (filter (lambda (row) (equal? (substring (car row) 0 1) "H")) rows))
-          (result '()))
-      (set! result (cons "H" (map (lambda (sublist) (apply list sublist)) a-rows)))
-      result)))
-(define rows-I
-  (lambda (rows)
-    (let ((a-rows (filter (lambda (row) (equal? (substring (car row) 0 1) "I")) rows))
-          (result '()))
-      (set! result (cons "I" (map (lambda (sublist) (apply list sublist)) a-rows)))
-      result)))
-(define rows-J
-  (lambda (rows)
-    (let ((a-rows (filter (lambda (row) (equal? (substring (car row) 0 1) "J")) rows))
-          (result '()))
-      (set! result (cons "J" (map (lambda (sublist) (apply list sublist)) a-rows)))
-      result)))
 
-(define inventary (list (rows-A file-lines) (rows-B file-lines) (rows-C file-lines) (rows-D file-lines) (rows-E file-lines) (rows-F file-lines) (rows-G file-lines) (rows-H file-lines) (rows-I file-lines) (rows-J file-lines)))
+(define inventary (list (rows-A file-lines) (rows-B file-lines) (rows-C file-lines) (rows-D file-lines) (rows-E file-lines)))
 
 (U inventary (list "A1" 100 "1" 15))
 (min-steps-to-product (generate-row inventary) "C2" 2 inventary (list "A1" 100 "1") +)
