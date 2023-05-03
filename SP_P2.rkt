@@ -17,6 +17,15 @@
       (if rows
           (cdr rows)
           '()))))
+;; Generate the value of the inventory
+(define suma-inventario-precio
+  (lambda (lst)
+    (apply + (map (lambda (sublst) (*(string->number(cadr sublst))(string->number (cadddr sublst)))) lst))))
+
+;; Value where inventory needs refill
+(define low-quantity
+  (lambda (lst)
+    (filter (lambda (sublst) (< (string->number (cadddr sublst)) 5)) lst)))
 
 ;; Matches a row and a col based on a letter and index
 (define match-row-col
@@ -65,7 +74,8 @@
 ;; 1 substr(0, 2)
 (define get-product-letter-index
     (lambda (product flag)
-     (cond ((equal? flag -1) (substring product 0 1))((equal? flag 1) (substring product 0 2)))))
+     (cond ((equal? flag -1) (substring product 0 1))
+           ((equal? flag 1) (substring product 0 2)))))
 
 ;; Generate letter when rows and window passed
 (define get-letter-match
@@ -94,11 +104,11 @@
 
 ;; Look for same indexes in inventary
 ;; Return window at position
-(define (look-inventory row index inventory)
-  (cond ((null? inventory) null)
-        ((equal?(string->number (caddar inventory)) index) ; Look for same indexes and rows return the last window
-         (car inventory))
-        (else (look-inventory row index (cdr inventory)))))
+(define (look-inventory row index window)
+  (cond ((null? window) null)
+        ((equal?(string->number (caddar window)) index) ; Look for same indexes and rows return the last window
+         (car window))
+        (else (look-inventory row index (cdr window)))))
 
 ;; Min steps to get to a product
 ;; First go up, then down.
@@ -106,9 +116,10 @@
 ;; If out of bounds, just return the other list with the counter
 (define (min-steps-to-product rows product quantity inventory window symbol)
   (cond ((null? inventory) null)
+        ((null? product) (add-retire-product null quantity window symbol))
         ((equal? (car rows) (get-product-letter-index product -1)) ; Identify the row where the product is
-         (let ((min-up (min-to-row-up(get-letter-match (generate-row inventory) window) inventory (generate-rows inventory (get-letter-match (generate-row inventory) window)) window product))
-               (min-down (min-to-row-down (get-letter-match (generate-row inventory) window) inventory (generate-rows inventory (get-letter-match (generate-row inventory) window)) window product)))
+         (let ((min-up (min-to-row-up-down(get-letter-match (generate-row inventory) window) inventory window product -))
+               (min-down (min-to-row-up-down (get-letter-match (generate-row inventory) window) inventory window product +)))
            (cond ((null? (cdr min-up))(min-down))
                  ((null? (cdr min-down))(min-up))
                  (else (add-retire-product product quantity (list min-up min-down) symbol)))))
@@ -118,30 +129,28 @@
 ;; there from a starting position
 (define (add-retire-product product quantity list-steps-window symbol)
   (cond ((null? product)
-        (let ((result (symbol (caddr product) quantity)))
-            (cond ((< result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0) ))
-                 (display
-                       (string-append "Queda: " (number->string 0) " del producto: " product " RELLENA EL INVENTARIO. Transacción hecha con los siguientes pasos: "
-                                    (number->string (car(min-recursive-steps list-steps-window))) " " (string-join modified-window)))
-                                     (newline)
-                                     (modify-file "Inventory.txt" (number->string result) modified-window)
-                     (newline))
-                (else (result)))))
+          (let ((result (symbol (string->number(cadddr list-steps-window)) quantity)))
+                (cond ((< result 0)
+                (define modified-window (list (car list-steps-window) (cadr list-steps-window) (caddr list-steps-window) (number->string 0)))
+                (display (string-append "Rellena este producto! " (number->string result) " del producto " (car list-steps-window)))
+                    (newline)
+                    (modify-file "Inventory.txt" (number->string result) modified-window))
+              (else (define modified-window (list (car list-steps-window) (cadr list-steps-window) (caddr list-steps-window) (number->string result)))
+                    (display (string-append "Queda: " (number->string result) " del producto " (car list-steps-window)))
+                    (newline)
+                    (modify-file "Inventory.txt" (number->string result) modified-window)))))
         (else (let ((result (symbol (string->number (cadr(cddadr (min-recursive-steps list-steps-window)))) quantity)))
-          (cond (( < result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0) ))
-                 (display
-                       (string-append "Queda: " (number->string 0) " del producto: " product " RELLENA EL INVENTARIO. Transacción hecha con los siguientes pasos: "
-                                    (number->string (car(min-recursive-steps list-steps-window))) " " (string-join modified-window)))
-                                     (newline)
-                                     (modify-file "Inventory.txt" (number->string result) modified-window)
+          (cond (( < result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0)))
+                 (display(string-append "Queda: " (number->string 0) " del producto: " product " RELLENA al producto " product". Transacción hecha con los siguientes pasos: "
+                      (number->string (car(min-recursive-steps list-steps-window)))))
+                      (newline)
+                      (modify-file "Inventory.txt" (number->string result) modified-window)
                      (newline))                   ; Product name                ; Price                      ; index                          ; quantity 
                 (else (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string result) ))
-                 (display
-                       (string-append "Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
-                                    (number->string (car(min-recursive-steps list-steps-window))) " " (string-join modified-window)))
-                                     (newline)
-                                     (modify-file "Inventory.txt" (number->string result) modified-window)
-                     (newline)))))))
+                 (display(string-append "Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
+                          (number->string (car(min-recursive-steps list-steps-window)))))
+                          (newline)
+                          (modify-file "Inventory.txt" (number->string result) modified-window)(newline)))))))
 
 
 ;; Receive inventory and window
@@ -160,44 +169,31 @@
 ;; Calls move-left-right if not out of bounds with 0 to move left
 (define (L inventory window)
   (cond ((null? inventory) null)
-        ((has-match-left (get-col-left inventory) window) null)
+        ((out-of-bounds (get-col-left inventory) window -1) null)
         (else(move-left-right inventory window 0))))
 
 ;; Receive inventory and window
 ;; Calls move-left-right if not out of bounds with 1 to move right
 (define (R inventory window)
   (cond ((null? inventory) null)
-        ((has-match-right (get-col-right inventory) window) null)
+        ((out-of-bounds (get-col-right inventory) window 1) null)
         (else(move-left-right inventory window 1))))
 
-;; Compare left col with window and regex
-(define (has-match-left left-col window)
-  (cond ((null? left-col)#f)
-        ((regexp-match? left-regex (car window))#t)
-        (else (has-match-left (cdr left-col) window))))
+;; Iterate to the check if out of bounds, return true if out of bounds
+(define (out-of-bounds left-right-col window symbol)
+  (cond ((null? left-right-col)#f)
+        ((and(equal? symbol -1)(regexp-match? left-regex (car window)))#t)
+        ((and(equal? symbol 1)(regexp-match? right-regex (car window)))#t)
+        (else (out-of-bounds (cdr left-right-col) window symbol))))
 
-;; Compare right col with window and regex
-(define (has-match-right right-col window)
-  (cond ((null? right-col)#f)
-        ((regexp-match? right-regex (car window))#t)
-        (else (has-match-right (cdr right-col) window))))
-
-;; Evaluate till the product is found to the right
+;; Evaluate till the product is found to the left or right
 ;; Return the steps to get there
-(define (min-check-cols-right inventory window product)
-      (cond ((null? window)(list 0 window))
-          ((equal? (get-letter-index-window window 1) (get-product-letter-index product 1)) (list 0 window))
-    (else (let((result (min-check-cols-right inventory (R inventory window) product)))
-          (cons(+ 1 (car result)) (cdr result))))))
-
-;; Evaluate till the product is found to the right
-;; Return the steps to get there
-(define (min-check-cols-left inventory window product)
+(define (min-check-cols-left-right inventory window product movement)
     (cond ((null? window)(list 0 window))
       ((equal? (get-letter-index-window window 1) (get-product-letter-index product 1)) (list 0 window))
-    (else (let((result (min-check-cols-left inventory (L inventory window) product)))     
+      ((equal? movement -1)(let((result (min-check-cols-left-right inventory (L inventory window) product movement)))(cons(+ 1 (car result)) (cdr result))))
+    (else (let((result (min-check-cols-left-right inventory (R inventory window) product movement)))
          (cons(+ 1 (car result)) (cdr result))))))
-
 
 (define (modify-file file-path quantity window)
   ;; Open the input file
@@ -208,7 +204,6 @@
         (list (space-separated-string window))
         line))
 
-  
   ;; Read and replace the desired line
   (define lines (list))
   (let loop ((line (read-line input-port)))
@@ -231,11 +226,25 @@
 
   ;; Write the modified list back to the file
   (for-each (lambda (line) (displayln (string-join line " ") output-port)) lines)
-
   ;; Close the output file
-  (close-output-port output-port)
-)
 
+  (close-output-port output-port)
+  
+  (define open2 (open-input-file file-path))
+  (define lines-new (list))
+  (let loop ((line (read-line open2)))
+    (if (not (eof-object? line))
+        (begin
+          (set! lines-new (append lines-new (list (string-split line " "))))
+          (loop (read-line open2)))
+        (void)))
+  (close-input-port open2)
+  (display "El valor del inventario de medicinas es: ")
+  (display (suma-inventario-precio lines-new))
+  (newline)
+  (display "Los siguientes productos necesitan un refill: ")
+  (display (low-quantity lines-new))
+)
 
 ;; Evaluate till the product is found to the right
 ;; Return the steps to get there
@@ -243,31 +252,19 @@
 (define (min-check-cols inventory window product)
   (cond ((equal? (get-letter-index-window window 1) (get-product-letter-index product 1)) (list 0 window))
         ((equal? (get-letter-index-window window 0) "1")
-         (let ((result-right(min-check-cols-right inventory (R inventory window) product)))
-           (cons (+ 1 (car result-right)) (cdr result-right))))
-        ((equal? (get-letter-index-window window 0) "5")
-         (let ((result-left(min-check-cols-left inventory (L inventory window) product)))
-           (cons (+ 1 (car result-left)) (cdr result-left))))
-        (else
-         (let((result-right (min-check-cols-right inventory (R inventory window) product))
-              (result-left (min-check-cols-left inventory (L inventory window) product)))
+         (let ((result-right(min-check-cols-left-right inventory (R inventory window) product 1)))(cons (+ 1 (car result-right)) (cdr result-right))))
+        ((equal? (get-letter-index-window window 0) "5")(let ((result-left(min-check-cols-left-right inventory (L inventory window) product -1)))(cons (+ 1 (car result-left)) (cdr result-left))))
+        (else(let((result-right (min-check-cols-left-right inventory (R inventory window) product 1))
+        (result-left (min-check-cols-left-right inventory (L inventory window) product -1)))
            (cond ((null? (cdr result-right)) (cons(+ 1 (car result-left)) (cdr result-left)))
-                  (else (cons (+ 1 (car result-right)) (cdr result-right))))))))
+                (else (cons (+ 1 (car result-right)) (cdr result-right))))))))
 
 ;; Evaluate till the row is found upwards
 ;; return the sum of the steps and the state at the window
-(define (min-to-row-up letter inventory row-belonged window product)
+(define (min-to-row-up-down letter inventory window product symbol)
   (cond ((equal? (get-letter-index-window window -1) (get-product-letter-index product -1))(min-check-cols inventory window product))
-  (else (let((result (min-to-row-up letter inventory row-belonged (U inventory window) product)))
-          (cons(+ 1 (car result)) (cdr result))))))
-
-;; Evaluate till the row is found upwards
-;; return the sum of the steps and the state at the window
-(define (min-to-row-down letter inventory row-belonged window product)
-  (cond ((equal? (get-letter-index-window window -1) (get-product-letter-index product -1))(min-check-cols inventory window product))
-  (else (let((result (min-to-row-down letter inventory row-belonged (D inventory window) product)))
-          (cons(+ 1 (car result)) (cdr result))))))
-
+  ((equal? symbol -) (let ((result (min-to-row-up-down letter inventory (U inventory window) product symbol)))(cons(+ 1 (car result)) (cdr result))))
+  (else (let((result (min-to-row-up-down letter inventory (D inventory window) product symbol)))(cons(+ 1 (car result)) (cdr result))))))
 
 (define (read-file file-path)
   (call-with-input-file file-path
@@ -313,7 +310,20 @@
       result)))
 
 (define inventary (list (rows-A file-lines) (rows-B file-lines) (rows-C file-lines) (rows-D file-lines) (rows-E file-lines)))
-
-(U inventary (list "A1" 100 "1" 15))
+(display "Subir desde ventanilla A1: ")
+(display (U inventary (list "A1" 100 "1" 15)))(newline)
+(display "Agregar producto a C2 2 cantidades desde ventanilla A1: ")
 (min-steps-to-product (generate-row inventary) "C2" 2 inventary (list "A1" 100 "1") +)
+(newline)
+(display "Retirar producto a E5 2 cantidades desde ventanilla A1: ")
 (min-steps-to-product (generate-row inventary) "E5" 2 inventary (list "A1" 100 "1") -)
+(newline)
+(display "Agregar producto a C4 10 cantidades desde ventanilla D2: ")
+(min-steps-to-product (generate-row inventary) "C4" 10 inventary (list "D2" 200 "2") +)
+(newline)
+(display "Agregar producto a B4 10 cantidades desde ventanilla D2: ")
+(min-steps-to-product (generate-row inventary) "B4" 10 inventary (list "D2" 200 "2") +)
+(newline)
+(display "Agregar al elemento en ventanilla C2: 10 unidades Aplicando subir desde ventanilla D2: ")
+(newline)
+(min-steps-to-product (generate-row inventary) null 10 inventary (U inventary (list "D2" 200 "2" 15))+)
