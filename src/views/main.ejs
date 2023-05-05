@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/styles/output.css" rel="stylesheet">
+    <title>Document</title>
+</head>
+<body class="font-inter">
+    <main id="main-content" class="relative left-60 w-[calc(100%-15rem)] h-screen 
+        p-6 break-words phone:left-0 phone:w-full bg-slate-300">
+        <div id="content-wrapper" class="">
+            <!-- Content goes here -->
+            <div class="w-full text-center mb-8">
+                <p class="text-lg"> Welcome to your Inventory</p>
+            </div>
+            <div class="flex flex-row w-full justify-center space-x-10">
+                <div class="w-[<%(1/products.length)%>] p-1 bg-neutral-700 rounded-lg text-zinc-100 hover:bg-zinc-100 hover:text-neutral-700 text-center">
+                    <label for="products">Select a Row associated to your product:</label>
+                    <select id="products" onchange="fetchProducts(event, this.value, '<%= inventory %>')" class="bg-neutral-700 rounded-lg text-zinc-100 hover:bg-zinc-100 hover:text-neutral-700">
+                        <% products.forEach(function(product) { %>
+                            <option value="<%= product %>" >
+                                <%= product %>
+                            </option>
+                            <% }); %>
+                    </select>
+                </div>
+            </div>
+            <div id="products" class="flex flex-col items-center justify-center">
+                <ul id="products-list" class="flex flex-col justify-center w-3/12 mx-auto items-center gap-y-3 mt-5">
+                </ul>
+                <form id="input-bar-add-retire" class="flex flex-col justify-center text-center space-x-3 space-y-3">
+                </form>
+            </div>
+        </div>
+    </main>
+    <script defer src="/scripts/productsList.js"></script>
+</body>
+</html>
