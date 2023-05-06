@@ -67,6 +67,12 @@ function fetchProducts (event, keyProduct, inventory) {
 document.addEventListener('transactionMade', (event) => {
     const {inventory, payloadData, product} = event.detail;
     fetchProducts(event, product.substring(0, 1), inventory);
+    const transactionsDiv = document.getElementById('transactions');
+    const divChild = document.createElement('div');
+    const transactionsMade = document.createElement('p');
+    transactionsMade.innerHTML = `${payloadData}`;
+    divChild.appendChild(transactionsMade);
+    transactionsDiv.appendChild(divChild);
 })
 
 function inputProduct(product, price, quantity, index, inventory, event) {
@@ -141,9 +147,6 @@ function inputProduct(product, price, quantity, index, inventory, event) {
                 if (payload) {
                     form.reset();
                     form.classList.add("hidden"); // hide form
-                    const div = document.createElement('div');
-                    const transactionsDiv = document.getElementById('transactions');
-                    const transactionsMade = document.createElement('p');
                     const payloadData = payload.data;
                     // transactionsMade.innerHTML = JSON.parse(payload);
                     // div.classList.add(...stylesButton);

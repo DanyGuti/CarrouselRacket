@@ -9,7 +9,6 @@
   (define parts (string-split transaction-string ","))
   (list (car parts) (string->number (cadr parts))))
 
-(display (car(parse-transaction addTransaction)))
 (define addTransactionWindow (list (car (parse-transaction addTransaction)) (number->string(cadr(parse-transaction addTransaction)))))
 (define retireTransactionWindow (list (car (parse-transaction retireTransaction)) (number->string(cadr(parse-transaction retireTransaction)))))
 
@@ -115,7 +114,7 @@
     (match-row-col (generate-rows inventory "A") (caddr window)))
     (else(match-row-col (generate-rows inventory (string(move-char (string-ref(get-letter-match (generate-row inventory) window) 0) symbol)))(caddr window)))))
 
-;; Look for same indexes in inventary
+;; Look for same indexes in inventory
 ;; Return window at position
 (define (look-inventory row index window)
   (cond ((null? window) null)
@@ -149,19 +148,19 @@
                     (newline)
                     (modify-file file-path modified-window))
               (else (define modified-window (list (car list-steps-window) (cadr list-steps-window) (caddr list-steps-window) (number->string result)))
-                    (display (string-append "Queda: " (number->string result) " del producto " (car list-steps-window)))
+                    (display (string-append " Queda: " (number->string result) " del producto " (car list-steps-window)))
                     (newline)
                     (modify-file file-path modified-window)))))
         (else (let ((result (symbol (string->number (cadr(cddadr (min-recursive-steps list-steps-window)))) quantity)))
           (cond (( < result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0)))
-                 (display(string-append "Queda: " (number->string 0) " del producto: " product " RELLENA al producto " product". Transacción hecha con los siguientes pasos: "
-                      (number->string (car(min-recursive-steps list-steps-window)))))
+                 (display(string-append " Queda: " (number->string 0) " del producto: " product " RELLENA al producto " product". Transacción hecha con los siguientes pasos: "
+                      (number->string (car(min-recursive-steps list-steps-window))) " Desde ventanilla (A1 100 1)"))
                       (newline)
                       (modify-file file-path modified-window)
                      (newline))                   ; Product name                ; Price                      ; index                          ; quantity 
                 (else (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string result) ))
-                 (display(string-append "Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
-                          (number->string (car(min-recursive-steps list-steps-window)))))
+                 (display(string-append " Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
+                          (number->string (car(min-recursive-steps list-steps-window))) " Desde ventanilla (A1 100 1)"))
                           (newline)
                           (modify-file file-path modified-window)(newline)))))))
 
@@ -340,25 +339,37 @@
       (set! result (cons "G" (map (lambda (sublist) (apply list sublist)) g-rows)))
       result)))
 
-(define inventary (list (rows-A file-lines) (rows-B file-lines) (rows-C file-lines) (rows-D file-lines) (rows-E file-lines) (rows-F file-lines)(rows-G file-lines) ))
+(define inventory (list (rows-A file-lines) (rows-B file-lines) (rows-C file-lines) (rows-D file-lines) (rows-E file-lines) (rows-F file-lines)(rows-G file-lines) ))
 ;;; (display "Subir desde ventanilla A1: ")
-;;; (display (U inventary (list "A1" 100 "1" 15)))(newline)
+;;; (display (U inventory (list "A1" 100 "1" 15)))(newline)
 ;;; (display "Agregar producto a C2 2 cantidades desde ventanilla A1: ")
-;;; (min-steps-to-product (generate-row inventary) "C2" 2 inventary (list "A1" 100 "1") +)
+;;; (min-steps-to-product (generate-row inventory) "C2" 2 inventory (list "A1" 100 "1") +)
 ;;; (newline)
 ;;; (display "Retirar producto a E4 2 cantidades desde ventanilla A1: ")
-;;; (min-steps-to-product (generate-row inventary) "E4" 2 inventary (list "A1" 100 "1") -)
+;;; (min-steps-to-product (generate-row inventory) "E4" 2 inventory (list "A1" 100 "1") -)
 ;;; (newline)
 ;;; (display "Agregar producto a C4 10 cantidades desde ventanilla D2: ")
-;;; (min-steps-to-product (generate-row inventary) "C4" 10 inventary (list "D2" 200 "2") +)
+;;; (min-steps-to-product (generate-row inventory) "C4" 10 inventory (list "D2" 200 "2") +)
 ;;; (newline)
 ;;; (display "Agregar producto a B4 10 cantidades desde ventanilla D2: ")
-;;; (min-steps-to-product (generate-row inventary) "B4" 10 inventary (list "D2" 200 "2") +)
+;;; (min-steps-to-product (generate-row inventory) "B4" 10 inventory (list "D2" 200 "2") +)
 ;;; (newline)
 ;;; (display "Agregar al elemento en ventanilla C2: 10 unidades Aplicando subir desde ventanilla D2: ")
 ;;; (newline)
-;;; (min-steps-to-product (generate-row inventary) null 10 inventary (U inventary (list "D2" 200 "2" 15))+)
+;;; (min-steps-to-product (generate-row inventory) null 10 inventory (U inventory (list "D2" 200 "2" 15))+)
 ;;; (newline)
 ;;; (display "Agregar al producto en ventanilla F2: 10 unidades Aplicando subir desde ventanilla C3: ")
-;;; (min-steps-to-product (generate-row inventary) "C3" 10 inventary (list "F2" 200 "2") +)
-(min-steps-to-product (generate-row inventary) (car addTransactionWindow) (string->number (cadr addTransactionWindow)) inventary (list "A1" 100 "1")+)
+;;; (min-steps-to-product (generate-row inventory) "C3" 10 inventory (list "F2" 200 "2") +)
+(define (add-retire addWindow retireWindow inventory)
+    (cond ((and (null? addWindow) (null? retireWindow))null)
+          ((equal? (string->number(cadr addWindow)) 0)
+            (min-steps-to-product (generate-row inventory) (car retireWindow) (string->number (cadr retireTransactionWindow)) inventory (list "A1" 100 "1")-))
+          ((equal? (string->number(cadr retireWindow)) 0)
+            (min-steps-to-product (generate-row inventory) (car addTransactionWindow) (string->number (cadr addTransactionWindow)) inventory (list "A1" 100 "1")+)
+          )
+          (else(
+            ((min-steps-to-product (generate-row inventory) (car addTransactionWindow) (string->number (cadr addTransactionWindow)) inventory (list "A1" 100 "1")+)
+            (min-steps-to-product (generate-row inventory) (car retireTransactionWindow) (string->number (cadr retireTransactionWindow)) inventory (list "A1" 100 "1")-)
+          ))))
+)
+(add-retire addTransactionWindow retireTransactionWindow inventory)
