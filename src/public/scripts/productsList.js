@@ -1,16 +1,38 @@
+const productsList = document.getElementById('products-list');
+const closeDropdown = document.getElementById('close-lists');
+const productsDiv = document.getElementById('products');
+
+closeDropdown.addEventListener('click', (event) => {
+    const childLists = productsList.querySelectorAll('list');
+    if (childLists && !(productsList.classList.contains('hidden'))) {
+        productsList.classList.toggle('hidden');
+        closeDropdown.classList.add('hidden');
+    }
+})
+
 function fetchProducts (event, keyProduct, inventory) {
     event.preventDefault();
     fetch(`/products/products?key=${keyProduct}&inventory=${inventory}`)
     .then(res => res.json())
     .then(data =>{
         let listProducts = document.getElementById("products-list");
+        if(listProducts.classList.contains('hidden')){
+            listProducts.classList.toggle('hidden');
+            if(closeDropdown.classList.contains('hidden')){
+                closeDropdown.classList.toggle('hidden');
+            }
+        } else{
+            if (closeDropdown.classList.contains('hidden')) {
+                closeDropdown.classList.remove('hidden');
+            }
+        }
         listProducts.innerHTML = '';
         data.productObjects.forEach(product => {
             let li = document.createElement('li');
+            li.id = `list_product_${product}`
             li.classList.add('p-2', 'hover:z-10', 'hover:border', 'hover:border-gray-100', 'hover:border-2', 'cursor-pointer', 'rounded-lg');
             li.innerHTML = `Product: ${product['product']} Price: ${product['price']} Quantity: ${product['quantity']}`;
             li.onclick = (event) => {
-                event.stopPropagation();
                 inputProduct(product['product'], product['price'], product['quantity'], product['index'], event);
             }
             listProducts.appendChild(li);
@@ -20,96 +42,84 @@ function fetchProducts (event, keyProduct, inventory) {
     .catch(error => console.log(error));
 }
 
-function inputProduct (product, price, quantity, index, event) {
-    let form = document.getElementById("input-bar-add-retire");
-    if(!form){
-        let form = document.createElement("form");
-        form.id = "input-bar-add-retire";
-        console.log(form);
-        document.getElementById("products").appendChild(form);
-        form.classList.add('flex', 'flex-col', 'justify-center', 'text-center');
-        form.classList.add('z-40', 'fixed', 'w-3/12', 'bg-zinc-100', 'bottom-32', 'p-5', 'rounded-lg', 'items-center');
-    } else{
-        form.classList.add('z-40', 'fixed', 'w-3/12', 'bg-zinc-100', 'bottom-32', 'p-5', 'rounded-lg', 'items-center');
-    }
-    let existingInputs = form.querySelectorAll("input");
-    let existingButton = form.querySelector("button");
-    if (existingInputs.length === 2 && existingButton) {
-        // input fields already exist, update their attributes
-        existingInputs[0].id = `add_${product}`;
-        existingInputs[0].name = `add_${product}`;
-        existingInputs[0].value = "";
-        existingInputs[1].id = `retire_${product}`;
-        existingInputs[1].name = `retire_${product}`;
-        existingInputs[1].value = "";
-        existingButton.id = `button_${product}`;
-        existingButton.type = 'submit';
 
-        // update labels
-        let labels = form.querySelectorAll("label");
-        labels[0].textContent = `Add to product: ${product}`;
-        labels[0].htmlFor = `add_${product}`;
-        labels[1].textContent = `Retire from product: ${product}`;
-        labels[1].htmlFor = `retire_${product}`;
-        existingButton.textContent = `Accept transactions ${product}`;
-    } else {
-        // input fields don't exist yet, create them
-        let inputAdd = document.createElement("input");
-        inputAdd.id = `add_${product}`;
-        inputAdd.name = `add_${product}`;
-        inputAdd.type = "number";
-        inputAdd.classList.add('bg-gray-200', 'border', 'border-gray-300', 'text-gray-900', 'text-sm', 'rounded-lg', 'focus:ring-gray-500', 'text-center', 'w-2/4');
+function inputProduct(product, price, quantity, index, event) {
+    event.stopPropagation();
+    const stylesInputs = ['rounded-lg', 'text-center', 'p-2'];
+    const stylesForm = ['rounded-lg', 'text-center', 'p-4', 'bg-neutral-400'];
+    // create form elements
+    const form = document.getElementById("input-bar-add-retire");
+    const inputAdd = document.createElement("input");
+    const labelAdd = document.createElement("label");
+    const inputRetire = document.createElement("input");
+    const labelRetire = document.createElement("label");
+    const button = document.createElement("button");
 
-        let labelAdd = document.createElement("label");
-        labelAdd.classList.add('rounded-xl', 'text-gray-900');
-        labelAdd.textContent = `Add to product: ${product} `;
-        labelAdd.htmlFor = `add_${product}`;
+    // set attributes for form elements
+    inputAdd.type = "number";
+    inputAdd.min = 0;
+    inputAdd.id = `add_${product}`;
+    inputAdd.placeholder = "Add quantity " + `${product}`;
+    inputRetire.type = "number";
+    inputRetire.min = 0;
+    inputRetire.id = `retire_${product}`;
+    inputRetire.placeholder = "Retire quantity " + `${product}`;
+    labelAdd.htmlFor = `add_${product}`;
+    labelAdd.textContent = "Add quantity:";
+    labelRetire.htmlFor = `retire_${product}`;
+    labelRetire.textContent = "Retire quantity:";
+    button.textContent = "Submit";
+    button.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded");
 
-        let inputRetire = document.createElement("input");
-        inputRetire.id = `retire_${product}`;
-        inputRetire.name = `retire_${product}`;
-        inputRetire.type = "number";
-        inputRetire.classList.add('bg-gray-200', 'border', 'border-gray-300', 'text-gray-900', 'text-sm', 'rounded-lg', 'focus:ring-gray-500', 'text-center', 'w-2/4');
-
-        let labelRetire = document.createElement("label");
-        labelRetire.classList.add('rounded-xl', 'text-gray-900');
-        labelRetire.textContent = `Retire from product: ${product} `;
-        labelRetire.htmlFor = `retire_${product}`;
-        
-        let button = document.createElement("button");
-        button.id = `button_${product}`;
-        button.classList.add('p-5', 'bg-neutral-700', 'text-zinc-100', 'hover:text-neutral-700', 'hover:bg-zinc-300', 'rounded-xl');
-        button.textContent = `Accept transaction ${product} `;
-        button.type = 'submit';
-        form.appendChild(inputAdd);
-        form.appendChild(labelAdd);
-        form.appendChild(inputRetire);
-        form.appendChild(labelRetire);
-        form.appendChild(button);
-        form.addEventListener('click', ev => { ev.stopPropagation() });
-        form.addEventListener('submit', (event) => {
-            event.preventDefault(); // prevent default form submission
-            let inputAddValue = document.getElementById(`add_${product}`).value;
-            let inputRetireValue = document.getElementById(`retire_${product}`).value;
-            let jsonTransaction = {};
-            jsonTransaction.addTransaction = [product, inputAddValue];
-            jsonTransaction.retireTransaction = [product, inputRetireValue];
-            fetch (`/products/postfile`, {
-                method: 'POST',
+    // add form elements to form
+    form.innerHTML = "";
+    form.appendChild(labelAdd);
+    form.appendChild(inputAdd);
+    form.appendChild(labelRetire);
+    form.appendChild(inputRetire);
+    form.appendChild(button);
+    form.classList.add(...stylesForm);
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.classList.add(...stylesInputs);
+    })
+    // show form
+    form.classList.remove("hidden");
+    document.addEventListener('click', (event) => {
+        if(!form.contains(event.target) &&
+         (event.target.id !== `add_${product}` || 
+         event.target.id !== `retire_${product}`)){
+            form.classList.add('hidden');
+        }
+    })
+    // handle form submission
+    form.addEventListener("submit", (event) => {
+        event.preventDefault(); // prevent default form submission
+        const inputAddValue = inputAdd.value;
+        const inputRetireValue = inputRetire.value;
+        if (inputAddValue || inputRetireValue) {
+            const jsonTransaction = {
+                addTransaction: [product, inputAddValue || 0],
+                retireTransaction: [product, inputRetireValue || 0],
+            };
+            fetch("/products/postfile", {
+                method: "POST",
                 body: JSON.stringify(jsonTransaction),
                 headers: {
-                    'Content-Type': 'application/json'
-                }
+                    "Content-Type": "application/json",
+                },
             })
-            .then(res => res.json())
-            .then(payload => {
-                if(payload){
+            .then((res) => res.json())
+            .then((payload) => {
+                if (payload) {
                     console.log("success");
                     form.reset();
-                    form.parentNode.removeChild(form);
+                    form.classList.add("hidden"); // hide form
                 }
             })
-            .catch((error)=> {console.log(error)});
+            .catch((error) => {
+                console.log(error);
+            });
         }
-    )}
+    });
 }
