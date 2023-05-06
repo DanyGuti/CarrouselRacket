@@ -11,8 +11,30 @@ closeDropdown.addEventListener('click', (event) => {
 })
 
 function fetchProducts (event, keyProduct, inventory) {
-    event.preventDefault();
-    fetch(`/products/products?key=${keyProduct}&inventory=${inventory}`)
+    let inventoryUpdate = inventory;
+    if(event.type !== 'transactionMade') {
+        event.preventDefault();
+    }else{
+        fetch(`/products/update?product=${keyProduct}`)
+        .then(res => res.json())
+        .then(data => {
+            console.log("Success");
+            let listProducts = document.getElementById("products-list");
+            listProducts.innerHTML = '';
+            data.productObjects.forEach(product => {
+                let li = document.createElement('li');
+                li.id = `list_product_${product}`
+                li.classList.add('p-2', 'hover:border', 'hover:border-gray-100', 'hover:border-2', 'cursor-pointer', 'rounded-lg');
+                li.innerHTML = `Product: ${product['product']} Price: ${product['price']} Quantity: ${product['quantity']}`;
+                li.onclick = (event) => {
+                    inputProduct(product['product'], product['price'], product['quantity'], product['index'], inventoryUpdate, event);
+                }
+                listProducts.appendChild(li);
+            })
+        })
+        .catch(error => {console.log(error)});
+    }
+    fetch(`/products/products?key=${keyProduct}&inventory=${inventoryUpdate}`)
     .then(res => res.json())
     .then(data =>{
         let listProducts = document.getElementById("products-list");
@@ -30,10 +52,10 @@ function fetchProducts (event, keyProduct, inventory) {
         data.productObjects.forEach(product => {
             let li = document.createElement('li');
             li.id = `list_product_${product}`
-            li.classList.add('p-2', 'hover:z-10', 'hover:border', 'hover:border-gray-100', 'hover:border-2', 'cursor-pointer', 'rounded-lg');
+            li.classList.add('p-2', 'hover:border', 'hover:border-gray-100', 'hover:border-2', 'cursor-pointer', 'rounded-lg');
             li.innerHTML = `Product: ${product['product']} Price: ${product['price']} Quantity: ${product['quantity']}`;
             li.onclick = (event) => {
-                inputProduct(product['product'], product['price'], product['quantity'], product['index'], event);
+                inputProduct(product['product'], product['price'], product['quantity'], product['index'], inventoryUpdate, event);
             }
             listProducts.appendChild(li);
         })
@@ -42,11 +64,16 @@ function fetchProducts (event, keyProduct, inventory) {
     .catch(error => console.log(error));
 }
 
+document.addEventListener('transactionMade', (event) => {
+    const {inventory, payloadData, product} = event.detail;
+    fetchProducts(event, product.substring(0, 1), inventory);
+})
 
-function inputProduct(product, price, quantity, index, event) {
+function inputProduct(product, price, quantity, index, inventory, event) {
     event.stopPropagation();
     const stylesInputs = ['rounded-lg', 'text-center', 'p-2'];
     const stylesForm = ['rounded-lg', 'text-center', 'p-4', 'bg-neutral-400'];
+    const stylesButton = ['bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded']
     // create form elements
     const form = document.getElementById("input-bar-add-retire");
     const inputAdd = document.createElement("input");
@@ -69,7 +96,7 @@ function inputProduct(product, price, quantity, index, event) {
     labelRetire.htmlFor = `retire_${product}`;
     labelRetire.textContent = "Retire quantity:";
     button.textContent = "Submit";
-    button.classList.add("bg-blue-500", "hover:bg-blue-700", "text-white", "font-bold", "py-2", "px-4", "rounded");
+    button.classList.add(...stylesButton);
 
     // add form elements to form
     form.innerHTML = "";
@@ -112,9 +139,21 @@ function inputProduct(product, price, quantity, index, event) {
             .then((res) => res.json())
             .then((payload) => {
                 if (payload) {
-                    console.log("success");
                     form.reset();
                     form.classList.add("hidden"); // hide form
+                    const div = document.createElement('div');
+                    const transactionsDiv = document.getElementById('transactions');
+                    const transactionsMade = document.createElement('p');
+                    const payloadData = payload.data;
+                    // transactionsMade.innerHTML = JSON.parse(payload);
+                    // div.classList.add(...stylesButton);
+                    // transactionsDiv.appendChild(div);
+                    // div.appendChild(transactionsMade);
+                    const transactionEvent = new CustomEvent('transactionMade', { detail: {payloadData, product, inventory} });
+                    document.dispatchEvent(transactionEvent);
+                }
+                else{
+                    console.log("No transaction made");
                 }
             })
             .catch((error) => {

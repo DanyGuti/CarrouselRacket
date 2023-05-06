@@ -2,11 +2,12 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-
+const env = require('dotenv');
 const { initRoutes } = require('./routes');
 
 const PORT = 4000;
 
+env.config({ path: path.join(__dirname, '.env') });
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.set('view engine', 'ejs');

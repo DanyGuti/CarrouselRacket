@@ -1,7 +1,19 @@
 #lang racket
-
 ;; Made by Daniel Gutiérrez Gómez A01068056
-(define left-regex #rx"^[A-Z]1$") ; Out of bounds to the left when match
+
+(define file-path (vector-ref (current-command-line-arguments) 0))
+(define addTransaction (vector-ref (current-command-line-arguments) 1))
+(define retireTransaction (vector-ref (current-command-line-arguments) 2))
+
+(define (parse-transaction transaction-string)
+  (define parts (string-split transaction-string ","))
+  (list (car parts) (string->number (cadr parts))))
+
+(display (car(parse-transaction addTransaction)))
+(define addTransactionWindow (list (car (parse-transaction addTransaction)) (number->string(cadr(parse-transaction addTransaction)))))
+(define retireTransactionWindow (list (car (parse-transaction retireTransaction)) (number->string(cadr(parse-transaction retireTransaction)))))
+
+(define left-regex #rx"^[-Z]1$") ; Out of bounds to the left when match
 (define right-regex #rx"^[A-Z]5$") ; Out of bounds to the right when match
 
 ;; Generate rows of letters: ("A", "B", "C", "D", "E", "F", "G")
@@ -135,23 +147,23 @@
                 (define modified-window (list (car list-steps-window) (cadr list-steps-window) (caddr list-steps-window) (number->string 0)))
                 (display (string-append "Rellena este producto! " (number->string result) " del producto " (car list-steps-window)))
                     (newline)
-                    (modify-file "Inventory.txt" modified-window))
+                    (modify-file file-path modified-window))
               (else (define modified-window (list (car list-steps-window) (cadr list-steps-window) (caddr list-steps-window) (number->string result)))
                     (display (string-append "Queda: " (number->string result) " del producto " (car list-steps-window)))
                     (newline)
-                    (modify-file "Inventory.txt" modified-window)))))
+                    (modify-file file-path modified-window)))))
         (else (let ((result (symbol (string->number (cadr(cddadr (min-recursive-steps list-steps-window)))) quantity)))
           (cond (( < result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0)))
                  (display(string-append "Queda: " (number->string 0) " del producto: " product " RELLENA al producto " product". Transacción hecha con los siguientes pasos: "
                       (number->string (car(min-recursive-steps list-steps-window)))))
                       (newline)
-                      (modify-file "Inventory.txt" modified-window)
+                      (modify-file file-path modified-window)
                      (newline))                   ; Product name                ; Price                      ; index                          ; quantity 
                 (else (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string result) ))
                  (display(string-append "Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
                           (number->string (car(min-recursive-steps list-steps-window)))))
                           (newline)
-                          (modify-file "Inventory.txt" modified-window)(newline)))))))
+                          (modify-file file-path modified-window)(newline)))))))
 
 
 ;; Receive inventory and window
@@ -223,12 +235,12 @@
   (close-input-port input-port)
 
   ;; Delete the output file if it already exists
-  (if (file-exists? "Inventory.txt")
-      (delete-file "Inventory.txt")
+  (if (file-exists? file-path)
+      (delete-file file-path)
       #f)
 
   ;; Open the output file
-  (define output-port (open-output-file "Inventory.txt"))
+  (define output-port (open-output-file file-path))
 
   ;; Write the modified list back to the file
   (for-each (lambda (line) (displayln (string-join line " ") output-port)) lines)
@@ -283,7 +295,7 @@
             (loop (read-line port)
                   (cons (string-split line) result)))))))
 
-(define file-lines (read-file "Inventory.txt"))
+(define file-lines (read-file file-path))
 
 (define rows-A
   (lambda (rows)
@@ -329,23 +341,24 @@
       result)))
 
 (define inventary (list (rows-A file-lines) (rows-B file-lines) (rows-C file-lines) (rows-D file-lines) (rows-E file-lines) (rows-F file-lines)(rows-G file-lines) ))
-(display "Subir desde ventanilla A1: ")
-(display (U inventary (list "A1" 100 "1" 15)))(newline)
-(display "Agregar producto a C2 2 cantidades desde ventanilla A1: ")
-(min-steps-to-product (generate-row inventary) "C2" 2 inventary (list "A1" 100 "1") +)
-(newline)
-(display "Retirar producto a E4 2 cantidades desde ventanilla A1: ")
-(min-steps-to-product (generate-row inventary) "E4" 2 inventary (list "A1" 100 "1") -)
-(newline)
-(display "Agregar producto a C4 10 cantidades desde ventanilla D2: ")
-(min-steps-to-product (generate-row inventary) "C4" 10 inventary (list "D2" 200 "2") +)
-(newline)
-(display "Agregar producto a B4 10 cantidades desde ventanilla D2: ")
-(min-steps-to-product (generate-row inventary) "B4" 10 inventary (list "D2" 200 "2") +)
-(newline)
-(display "Agregar al elemento en ventanilla C2: 10 unidades Aplicando subir desde ventanilla D2: ")
-(newline)
-(min-steps-to-product (generate-row inventary) null 10 inventary (U inventary (list "D2" 200 "2" 15))+)
-(newline)
-(display "Agregar al producto en ventanilla F2: 10 unidades Aplicando subir desde ventanilla C3: ")
-(min-steps-to-product (generate-row inventary) "C3" 10 inventary (list "F2" 200 "2") +)
+;;; (display "Subir desde ventanilla A1: ")
+;;; (display (U inventary (list "A1" 100 "1" 15)))(newline)
+;;; (display "Agregar producto a C2 2 cantidades desde ventanilla A1: ")
+;;; (min-steps-to-product (generate-row inventary) "C2" 2 inventary (list "A1" 100 "1") +)
+;;; (newline)
+;;; (display "Retirar producto a E4 2 cantidades desde ventanilla A1: ")
+;;; (min-steps-to-product (generate-row inventary) "E4" 2 inventary (list "A1" 100 "1") -)
+;;; (newline)
+;;; (display "Agregar producto a C4 10 cantidades desde ventanilla D2: ")
+;;; (min-steps-to-product (generate-row inventary) "C4" 10 inventary (list "D2" 200 "2") +)
+;;; (newline)
+;;; (display "Agregar producto a B4 10 cantidades desde ventanilla D2: ")
+;;; (min-steps-to-product (generate-row inventary) "B4" 10 inventary (list "D2" 200 "2") +)
+;;; (newline)
+;;; (display "Agregar al elemento en ventanilla C2: 10 unidades Aplicando subir desde ventanilla D2: ")
+;;; (newline)
+;;; (min-steps-to-product (generate-row inventary) null 10 inventary (U inventary (list "D2" 200 "2" 15))+)
+;;; (newline)
+;;; (display "Agregar al producto en ventanilla F2: 10 unidades Aplicando subir desde ventanilla C3: ")
+;;; (min-steps-to-product (generate-row inventary) "C3" 10 inventary (list "F2" 200 "2") +)
+(min-steps-to-product (generate-row inventary) (car addTransactionWindow) (string->number (cadr addTransactionWindow)) inventary (list "A1" 100 "1")+)
