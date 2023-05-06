@@ -9,8 +9,6 @@
   (define parts (string-split transaction-string ","))
   (list (car parts) (string->number (cadr parts))))
 
-(define addTransactionWindow (list (car (parse-transaction addTransaction)) (number->string(cadr(parse-transaction addTransaction)))))
-(define retireTransactionWindow (list (car (parse-transaction retireTransaction)) (number->string(cadr(parse-transaction retireTransaction)))))
 
 (define left-regex #rx"^[-Z]1$") ; Out of bounds to the left when match
 (define right-regex #rx"^[A-Z]5$") ; Out of bounds to the right when match
@@ -360,6 +358,7 @@
 ;;; (newline)
 ;;; (display "Agregar al producto en ventanilla F2: 10 unidades Aplicando subir desde ventanilla C3: ")
 ;;; (min-steps-to-product (generate-row inventory) "C3" 10 inventory (list "F2" 200 "2") +)
+
 (define (add-retire addWindow retireWindow inventory)
     (cond ((and (null? addWindow) (null? retireWindow))null)
           ((equal? (string->number(cadr addWindow)) 0)
@@ -372,4 +371,22 @@
             (min-steps-to-product (generate-row inventory) (car retireTransactionWindow) (string->number (cadr retireTransactionWindow)) inventory (list "A1" 100 "1")-)
           ))))
 )
-(add-retire addTransactionWindow retireTransactionWindow inventory)
+
+(cond
+  [(equal? addTransaction "1")
+   ;; execute code when addTransaction is "1"
+   ]
+  [(equal? addTransaction "+")
+   ;; execute code when addTransaction is "+"
+   ]
+  [(equal? addTransaction "-")
+   ;; execute code when addTransaction is "-"
+   ]
+  [(equal? addTransaction "-1")
+   ;; execute code when addTransaction is "-1"
+   ]
+  [else
+    (define addTransactionWindow (list (car (parse-transaction addTransaction)) (number->string(cadr(parse-transaction addTransaction)))))
+    (define retireTransactionWindow (list (car (parse-transaction retireTransaction)) (number->string(cadr(parse-transaction retireTransaction)))))
+    (add-retire addTransactionWindow retireTransactionWindow inventory)
+  ])

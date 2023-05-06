@@ -38,8 +38,32 @@
                     Close Inventory
                 </button>
             </div>
+            <div id="window" class="fixed flex flex-col justify-center bottom-56 right-0 text-center gap-y-4 my-5 left-40">
+                <div class="w-full text-center flex items-center justify-center">
+                    <a id="position-window" class="p-2 bg-blue-400 rounded-lg">
+                        <%=window %>
+                    </a>
+                </div>
+            </div>
+            <div id="movements" class="flex flex-row justify-center items-end gap-y-4 my-5 content-end fixed bottom-16 left-40 right-0">
+                <form id="movement-buttons">
+                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded mx-auto p-5" id="left">
+                        Move window left
+                    </button>
+                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded mx-auto p-5" id="right">
+                        Move window right
+                    </button>
+                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded mx-auto p-5" id="up">
+                        Move window up
+                    </button>
+                    <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold rounded mx-auto p-5" id="down">
+                        Move window down
+                    </button>
+                </form>
+            </div>
         </div>
     </main>
     <script defer src="/scripts/productsList.js"></script>
+    <script defer src="/scripts/movements.js"></script>
 </body>
 </html>

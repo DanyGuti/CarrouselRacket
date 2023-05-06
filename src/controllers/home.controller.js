@@ -7,9 +7,11 @@ exports.home = async(req, res) => {
     const inventory = await file.readInventory();
     const products = Object.keys(inventory);
     const inventoryJson = JSON.stringify(inventory);
+    const window = "A1 100 1";
     res.render(__dirname + '/../views/main', {
         products : products,
-        inventory: inventoryJson
+        inventory: inventoryJson,
+        window: window
     });
 }
 
@@ -54,6 +56,29 @@ exports.postFile = async (req, res) => {
     console.log(addTransaction);
     const childProcess = spawn(process.env.RACKET_PATH, [path.join(__dirname, '/../index/SP_P2.rkt'), ...arguments]);
     
+    // Handle the output of the child process
+    childProcess.stdout.on('data', (data) => {
+        dataTransaction += data.toString();
+    });
+
+    childProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+
+    childProcess.on('close', (code) => {
+        res.status(200).json({ data: dataTransaction });
+        console.log(`child process exited with code ${code}`);
+    });
+}
+
+exports.moveWindow = async (req, res) => {
+    let moveDirection = req.body.direction;
+    let moveWindow = req.body.window;
+    console.log(moveDirection);
+    
+    const arguments = [filePath, moveDirection, moveWindow];
+    const childProcess = spawn(process.env.RACKET_PATH, [path.join(__dirname, '/../index/SP_P2.rkt'), ...arguments]);
+
     // Handle the output of the child process
     childProcess.stdout.on('data', (data) => {
         dataTransaction += data.toString();
