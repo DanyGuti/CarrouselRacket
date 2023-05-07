@@ -2,7 +2,7 @@ const form = document.getElementById('movement-buttons');
 form.addEventListener('click', (event) => {
     const buttonId = event.target.id;
     console.log(buttonId);
-    const window = document.getElementById('position-window').innerText;
+    let window = document.getElementById('position-window');
     switch(buttonId) {
         case 'left':
             symbol = '-';
@@ -14,13 +14,14 @@ form.addEventListener('click', (event) => {
             symbol = '1';
             break;
         case 'down':
-            symbol = '-1';
+            symbol = '0';
             break;
         }
         const jsonTransaction = {
             direction : symbol,
-            window : window
+            window : window.innerText
         }
+        console.log(typeof(window.innerText));
         fetch(`/products/movement`, {
             method: "POST",
             body: JSON.stringify(jsonTransaction),
@@ -28,7 +29,17 @@ form.addEventListener('click', (event) => {
                 "Content-Type": "application/json",
             },
         })
-            .then(res => res.json())
-            .then()
-            .catch(error => { console.log(error) });
+        .then(res => res.json())
+        .then(payload => {
+            if(payload.msg === 'Comando no válido'){
+                setTimeout(function () {
+                    // Display an alert after the timeout
+                    alert(payload.msg);
+                }, 500);
+                window.innerText = `${payload.data}`;
+            }else{
+                window.innerText = `${payload.data}`;
+            }
+        })
+        .catch(error => { console.log(error) });
 })

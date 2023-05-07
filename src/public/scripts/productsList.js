@@ -2,11 +2,18 @@ const productsList = document.getElementById('products-list');
 const closeDropdown = document.getElementById('close-lists');
 const productsDiv = document.getElementById('products');
 
+
 closeDropdown.addEventListener('click', (event) => {
     const childLists = productsList.querySelectorAll('list');
+    const window = document.getElementById('window');
+    const movements = document.getElementById('movements');
     if (childLists && !(productsList.classList.contains('hidden'))) {
         productsList.classList.toggle('hidden');
         closeDropdown.classList.add('hidden');
+        setTimeout(() => {
+            window.classList.remove('hidden');
+            movements.classList.remove('hidden');
+        }, 1250)
     }
 })
 
@@ -68,15 +75,29 @@ document.addEventListener('transactionMade', (event) => {
     const {inventory, payloadData, product} = event.detail;
     fetchProducts(event, product.substring(0, 1), inventory);
     const transactionsDiv = document.getElementById('transactions');
+    for (let i = transactionsDiv.children.length - 1; i >= 0; i--) {
+        const node = transactionsDiv.children[i];
+        if (node.id !== 'close-list') {
+            transactionsDiv.removeChild(node);
+        }
+    }
     const divChild = document.createElement('div');
     const transactionsMade = document.createElement('p');
     transactionsMade.innerHTML = `${payloadData}`;
     divChild.appendChild(transactionsMade);
     transactionsDiv.appendChild(divChild);
+    const window = document.getElementById('window');
+    const movements = document.getElementById('movements');
+    window.classList.remove('hidden');
+    movements.classList.remove('hidden');
 })
 
 function inputProduct(product, price, quantity, index, inventory, event) {
     event.stopPropagation();
+    const window = document.getElementById('window');
+    const movements = document.getElementById('movements');
+    window.classList.add('hidden');
+    movements.classList.add('hidden');
     const stylesInputs = ['rounded-lg', 'text-center', 'p-2'];
     const stylesForm = ['rounded-lg', 'text-center', 'p-4', 'bg-neutral-400'];
     const stylesButton = ['bg-blue-500', 'hover:bg-blue-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded']
@@ -148,10 +169,6 @@ function inputProduct(product, price, quantity, index, inventory, event) {
                     form.reset();
                     form.classList.add("hidden"); // hide form
                     const payloadData = payload.data;
-                    // transactionsMade.innerHTML = JSON.parse(payload);
-                    // div.classList.add(...stylesButton);
-                    // transactionsDiv.appendChild(div);
-                    // div.appendChild(transactionsMade);
                     const transactionEvent = new CustomEvent('transactionMade', { detail: {payloadData, product, inventory} });
                     document.dispatchEvent(transactionEvent);
                 }

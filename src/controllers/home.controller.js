@@ -7,7 +7,7 @@ exports.home = async(req, res) => {
     const inventory = await file.readInventory();
     const products = Object.keys(inventory);
     const inventoryJson = JSON.stringify(inventory);
-    const window = "A1 100 1";
+    const window = "A1 100 1 15";
     res.render(__dirname + '/../views/main', {
         products : products,
         inventory: inventoryJson,
@@ -74,8 +74,7 @@ exports.postFile = async (req, res) => {
 exports.moveWindow = async (req, res) => {
     let moveDirection = req.body.direction;
     let moveWindow = req.body.window;
-    console.log(moveDirection);
-    
+    let dataTransaction = '';
     const arguments = [filePath, moveDirection, moveWindow];
     const childProcess = spawn(process.env.RACKET_PATH, [path.join(__dirname, '/../index/SP_P2.rkt'), ...arguments]);
 
@@ -89,7 +88,13 @@ exports.moveWindow = async (req, res) => {
     });
 
     childProcess.on('close', (code) => {
-        res.status(200).json({ data: dataTransaction });
-        console.log(`child process exited with code ${code}`);
+        dataTransaction = JSON.parse(dataTransaction);
+        if(dataTransaction == "error"){
+            res.status(200).json({
+                 data: moveWindow,
+                 msg: 'Comando no válido'
+                });
+        } 
+        else res.status(200).json({ data: dataTransaction });
     });
 }
