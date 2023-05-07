@@ -1,3 +1,4 @@
+const fs = require('fs');
 const file = require('../public/scripts/file')
 const path = require('path');
 const filePath = path.join(__dirname, '/../index/Inventory.txt');
@@ -7,7 +8,7 @@ exports.home = async(req, res) => {
     const inventory = await file.readInventory();
     const products = Object.keys(inventory);
     const inventoryJson = JSON.stringify(inventory);
-    const window = "A1 100 1 15";
+    const window = fs.readFileSync(filePath, 'utf-8').split('\n')[0];
     res.render(__dirname + '/../views/main', {
         products : products,
         inventory: inventoryJson,
@@ -19,6 +20,7 @@ exports.updateInventory = async (req, res) => {
     const inventory = await file.readInventory();
     let key = req.query.product;
     let filterInv = inventory[key];
+    console.log(key);
     let productObjects = filterInv.map((str) => {
         const [product, price, index, quantity] = str.split(' ');
         return {
@@ -51,11 +53,9 @@ exports.postFile = async (req, res) => {
     let addTransaction = req.body.addTransaction;
     let retireTransaction = req.body.retireTransaction;
     const arguments = [filePath, addTransaction.join(','), retireTransaction.join(',')];
-    console.log(...arguments);
     let dataTransaction = '';
-    console.log(addTransaction);
+    console.log(arguments);
     const childProcess = spawn(process.env.RACKET_PATH, [path.join(__dirname, '/../index/SP_P2.rkt'), ...arguments]);
-    
     // Handle the output of the child process
     childProcess.stdout.on('data', (data) => {
         dataTransaction += data.toString();

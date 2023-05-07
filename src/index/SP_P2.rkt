@@ -131,7 +131,8 @@
 ;; If out of bounds, just return the other list with the counter
 (define (min-steps-to-product rows product quantity inventory window symbol)
   (cond ((null? inventory) null)
-        ((null? product) (add-retire-product null quantity window symbol))
+        ((equal? (substring product 0 2)(substring (car window) 0 2))(add-retire-product null quantity window symbol))
+        ((null? product) (add-retire-product  null quantity window symbol))
         ((equal? (car rows) (get-product-letter-index product -1)) ; Identify the row where the product is
          (let ((min-up (min-to-row-up-down(get-letter-match (generate-row inventory) window) inventory window product -)) ; Get the minimum steps to match the letter down the road
                (min-down (min-to-row-up-down (get-letter-match (generate-row inventory) window) inventory window product +))) ; Get the minimum steps to match the letter up the road
@@ -144,26 +145,26 @@
 ;; there from a starting position
 (define (add-retire-product product quantity list-steps-window symbol)
   (cond ((null? product)
-          (let ((result (symbol (string->number(cadddr list-steps-window)) quantity)))
+          (let ((result (symbol (string->number(cadddr list-steps-window))  quantity)))
                 (cond ((< result 0)
-                (define modified-window (list (car list-steps-window) (cadr list-steps-window) (caddr list-steps-window) (number->string 0)))
+                (define modified-window (list (car list-steps-window) (number->string(cadr list-steps-window)) (caddr list-steps-window) (number->string 0)))
                 (display (string-append "Rellena este producto! " (number->string result) " del producto " (car list-steps-window)))
                     (newline)
                     (modify-file file-path modified-window))
-              (else (define modified-window (list (car list-steps-window) (cadr list-steps-window) (caddr list-steps-window) (number->string result)))
+              (else (define modified-window (list (car list-steps-window) (number->string(cadr list-steps-window)) (caddr list-steps-window) (number->string result)))
                     (display (string-append " Queda: " (number->string result) " del producto " (car list-steps-window)))
                     (newline)
                     (modify-file file-path modified-window)))))
         (else (let ((result (symbol (string->number (cadr(cddadr (min-recursive-steps list-steps-window)))) quantity)))
           (cond (( < result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0)))
                  (display(string-append " Queda: " (number->string 0) " del producto: " product " RELLENA al producto " product". Transacción hecha con los siguientes pasos: "
-                      (number->string (car(min-recursive-steps list-steps-window))) "\n Desde ventanilla (A1 100 1)"))
+                      (number->string (car(min-recursive-steps list-steps-window))))) (newline)(display "Desde ventanilla (A1 100 1)")
                       (newline)
                       (modify-file file-path modified-window)
                      (newline))                   ; Product name                ; Price                      ; index                          ; quantity 
                 (else (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string result) ))
                  (display(string-append " Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
-                          (number->string (car(min-recursive-steps list-steps-window))) "\n Desde ventanilla (A1 100 1)"))
+                          (number->string (car(min-recursive-steps list-steps-window))))) (newline) (display" Desde ventanilla (A1 100 1)")
                           (newline)
                           (modify-file file-path modified-window)(newline)))))))
 
@@ -346,13 +347,13 @@
 (define (add-retire addWindow retireWindow inventory)
     (cond ((and (null? addWindow) (null? retireWindow))null)
           ((equal? (string->number(cadr addWindow)) 0)
-            (min-steps-to-product (generate-row inventory) (car retireWindow) (string->number (cadr retireWindow)) inventory (list "A1" 100 "1")-))
+            (min-steps-to-product (generate-row inventory) (car retireWindow) (string->number (cadr retireWindow)) inventory (list "A1" 100 "1" "15")-))
           ((equal? (string->number(cadr retireWindow)) 0)
-            (min-steps-to-product (generate-row inventory) (car addWindow) (string->number (cadr addWindow)) inventory (list "A1" 100 "1")+)
+            (min-steps-to-product (generate-row inventory) (car addWindow) (string->number (cadr addWindow)) inventory (list "A1" 100 "1" "15")+)
           )
           (else(
-            ((min-steps-to-product (generate-row inventory) (car addWindow) (string->number (cadr addWindow)) inventory (list "A1" 100 "1")+)
-            (min-steps-to-product (generate-row inventory) (car retireWindow) (string->number (cadr retireWindow)) inventory (list "A1" 100 "1")-)
+            ((min-steps-to-product (generate-row inventory) (car addWindow) (string->number (cadr addWindow)) inventory (list "A1" 100 "1" "15")+)
+            (min-steps-to-product (generate-row inventory) (car retireWindow) (string->number (cadr retireWindow)) inventory (list "A1" 100 "1" "15")-)
           ))))
 )
 (cond

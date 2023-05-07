@@ -39,14 +39,14 @@
                 </button>
             </div>
             <div id="window" class="fixed flex flex-col justify-center bottom-32 right-0 text-center gap-y-4 my-5 left-40">
-                <div class="w-full text-center flex items-center justify-center">
+                <div class="w-full text-center flex items-center justify-center" id="window-child">
                     <div class="p-2 bg-blue-400 rounded-lg">
                         <p>
                             Current window position:
                         </p>
-                        <a id="position-window">
+                        <button id="position-window" class="p-2" onclick="transactionActual(event, '<%= inventory %>')">
                             <%=window %>
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
