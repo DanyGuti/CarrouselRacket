@@ -157,8 +157,10 @@
                     (modify-file file-path modified-window)))))
         (else (let ((result (symbol (string->number (cadr(cddadr (min-recursive-steps list-steps-window)))) quantity)))
           (cond (( < result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0)))
-                 (display "RELLENA A TU PRODUCTO!!! NO PUEDES RETIRAR")
-                     (newline))                   ; Product name                ; Price                      ; index                          ; quantity 
+                 (display "TE PASASTE!!! SE DEJA EN 0'S")
+                     (newline)
+                     (modify-file file-path modified-window)
+                     )                   ; Product name                ; Price                      ; index                          ; quantity 
                 (else (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string result) ))
                  (display(string-append " Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
                           (number->string (car(min-recursive-steps list-steps-window))))) (newline) (display" Desde ventanilla (A1 100 1)")
