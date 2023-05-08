@@ -66,8 +66,12 @@ exports.postFile = async (req, res) => {
     });
 
     childProcess.on('close', (code) => {
-        res.status(200).json({ data: dataTransaction });
-        console.log(`child process exited with code ${code}`);
+        if (dataTransaction == "RELLENA A TU PRODUCTO!!! NO PUEDES RETIRAR"){
+            res.status(200).json({msg: dataTransaction});
+        }else{
+            res.status(200).json({ data: dataTransaction });
+            console.log(`child process exited with code ${code}`);
+        }
     });
 }
 

@@ -148,7 +148,7 @@
           (let ((result (symbol (string->number(cadddr list-steps-window))  quantity)))
                 (cond ((< result 0)
                 (define modified-window (list (car list-steps-window) (number->string(cadr list-steps-window)) (caddr list-steps-window) (number->string 0)))
-                (display (string-append "Rellena este producto! " (number->string result) " del producto " (car list-steps-window)))
+                (display (string-append "Rellena este producto! " (number->string 0) " del producto " (car list-steps-window)))
                     (newline)
                     (modify-file file-path modified-window))
               (else (define modified-window (list (car list-steps-window) (number->string(cadr list-steps-window)) (caddr list-steps-window) (number->string result)))
@@ -157,10 +157,7 @@
                     (modify-file file-path modified-window)))))
         (else (let ((result (symbol (string->number (cadr(cddadr (min-recursive-steps list-steps-window)))) quantity)))
           (cond (( < result 0) (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string 0)))
-                 (display(string-append " Queda: " (number->string 0) " del producto: " product " RELLENA al producto " product". Transacción hecha con los siguientes pasos: "
-                      (number->string (car(min-recursive-steps list-steps-window))))) (newline)(display "Desde ventanilla (A1 100 1)")
-                      (newline)
-                      (modify-file file-path modified-window)
+                 (display "RELLENA A TU PRODUCTO!!! NO PUEDES RETIRAR")
                      (newline))                   ; Product name                ; Price                      ; index                          ; quantity 
                 (else (define modified-window (list (caadar list-steps-window) (car(cdadar list-steps-window)) (cadr(cdadar list-steps-window)) (number->string result) ))
                  (display(string-append " Queda: " (number->string result) " del producto: " product ". Transacción hecha con los siguientes pasos: "
